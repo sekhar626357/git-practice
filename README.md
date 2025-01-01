@@ -1,2 +1,2 @@
 # git-practice
-learn git
+Learn git
