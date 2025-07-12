@@ -1,2 +1,2 @@
-# git-practice
-Learn git
+# git-learning
+This is to learn git
