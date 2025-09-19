@@ -1,0 +1,181 @@
+1. Sling Model Unit Test
+Ticket: Write JUnit5 test cases for BannerModel Sling Model
+
+
+Description:
+
+
+Given a Sling Model that reads title, subtitle, and ctaLink from JCR.
+
+
+Write JUnit5 test cases using AemContext.
+
+
+Mock JSON resource data (/src/test/resources) instead of real JCR.
+
+
+Verify getters return expected values.
+Step-1: create a component with the given fields
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0"
+    jcr:primaryType="cq:Component"
+    jcr:title="Banner Component"
+    componentGroup="Practice"/>
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root
+    xmlns:jcr="http://www.jcp.org/jcr/1.0"
+    xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+    xmlns:cq="http://www.day.com/jcr/cq/1.0"
+    xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="nt:unstructured"
+    jcr:title="Banner Component"
+    sling:resourceType="cq/gui/components/authoring/dialog">
+
+    <content
+        jcr:primaryType="nt:unstructured"
+        sling:resourceType="granite/ui/components/coral/foundation/container">
+
+        <items jcr:primaryType="nt:unstructured">
+            <tabs
+                jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/tabs">
+
+                <items jcr:primaryType="nt:unstructured">
+
+                    <!-- Tab 1: Banner Content -->
+                    <bannerTab
+                        jcr:primaryType="nt:unstructured"
+                        jcr:title="Banner Content"
+                        sling:resourceType="granite/ui/components/coral/foundation/container">
+
+                        <items jcr:primaryType="nt:unstructured">
+                            <fields
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form">
+
+                                <items jcr:primaryType="nt:unstructured">
+
+                                    <!-- Title -->
+                                    <title
+                                        jcr:primaryType="nt:unstructured"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                        fieldLabel="Title"
+                                        name="./title"
+                                        required="true"/>
+
+                                    <!-- Subtitle -->
+                                    <subtitle
+                                        jcr:primaryType="nt:unstructured"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                        fieldLabel="Subtitle"
+                                        name="./subtitle"/>
+
+                                    <!-- CTA Link -->
+                                    <ctaLink
+                                        jcr:primaryType="nt:unstructured"
+                                        sling:resourceType="granite/ui/components/coral/foundation/form/pathfield"
+                                        fieldLabel="CTA Link"
+                                        name="./ctaLink"
+                                        rootPath="/content"
+                                        forceSelection="true"/>
+
+                                </items>
+                            </fields>
+                        </items>
+                    </bannerTab>
+                </items>
+            </tabs>
+        </items>
+    </content>
+</jcr:root>
+Step-2 write sling model code 
+
+package com.adobe.aem.guides.demo.core.models;
+
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.models.annotations.DefaultInjectionStrategy;
+import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.ValueMapValue;
+
+@Model(adaptables = Resource.class, defaultInjectionStrategy = DefaultInjectionStrategy.OPTIONAL)
+public class BannerModel {
+
+    @ValueMapValue
+    private String title;
+
+    @ValueMapValue
+    private String subtitle;
+
+    @ValueMapValue
+    private String ctaLink;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public String getCtaLink() {
+        return ctaLink;
+    }
+}
+
+Step3 write test case for that model
+
+package com.adobe.aem.guides.demo.core.models;
+import io.wcm.testing.mock.aem.junit5.AemContext;
+import io.wcm.testing.mock.aem.junit5.AemContextExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.*;
+@ExtendWith(AemContextExtension.class)
+class BannerModelTest {
+   private final AemContext context = new AemContext();
+   private BannerModel model;
+   @BeforeEach
+   void setUp() {
+       // load JSON into mock content path
+       context.load().json("/models/banner.json", "/content/banner");
+       // adapt to model
+       model = context.resourceResolver()
+                      .getResource("/content/banner")
+                      .adaptTo(BannerModel.class);
+   }
+   @Test
+   void testTitle() {
+       assertEquals("Welcome Title", model.getTitle());
+   }
+   @Test
+   void testSubtitle() {
+       assertEquals("Your Subtitle Here", model.getSubtitle());
+   }
+   @Test
+   void testCtaLink() {
+       assertEquals("/contact-us", model.getCtaLink());
+   }
+}
+
+
+Step 4 create a json file under this path  /src/test/resources/models/banner.json
+
+{
+ "jcr:primaryType": "nt:unstructured",
+ "sling:resourceType": "Demo/components/practice/banner",
+ "title": "Welcome Title",
+ "subtitle": "Your Subtitle Here",
+ "ctaLink": "/contact-us"
+}
+
+—------------------------------------------------------------------------------------------------------------------------
+
+
+
+
